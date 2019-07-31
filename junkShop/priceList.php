@@ -363,32 +363,32 @@
                     console.log(subCategory);
                     console.log(desc);
                     console.log(price);
-                     $.ajax({
-                      url: "../api/updateJunk.php",
-                      data: {
-                        'upId' : upId,
-                        'category' : category,
-                        'subCategory' : subCategory,
-                        'desc' : desc,
-                        'price' : price
-                      },
-                      dataType: 'json',
-                      success: function(data) {
-                        console.log(data);
-                        if (data["status"] = true) {
-                             $('#myModal').modal('hide');
-                             location.reload(true);
-                        }
-                        else {
-                            $( "#alertContainer" ).empty();
-                            $( "#alertContainer" ).append( "<div class='alert alert-danger alert-dismissible fade show' role='alert'> <strong>"+data["msg"]+"!</strong><button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button> </div>" );
-                        }
+                  //    $.ajax({
+                  //     url: "../api/updateJunk.php",
+                  //     data: {
+                  //       'upId' : upId,
+                  //       'category' : category,
+                  //       'subCategory' : subCategory,
+                  //       'desc' : desc,
+                  //       'price' : price
+                  //     },
+                  //     dataType: 'json',
+                  //     success: function(data) {
+                  //       console.log(data);
+                  //       if (data["status"] = true) {
+                  //            $('#myModal').modal('hide');
+                  //            location.reload(true);
+                  //       }
+                  //       else {
+                  //           $( "#alertContainer" ).empty();
+                  //           $( "#alertContainer" ).append( "<div class='alert alert-danger alert-dismissible fade show' role='alert'> <strong>"+data["msg"]+"!</strong><button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button> </div>" );
+                  //       }
                         
-                      },
-                      error: function(data){
-                          //error
-                      }
-                  });
+                  //     },
+                  //     error: function(data){
+                  //         //error
+                  //     }
+                  // });
                 }
                 
             });

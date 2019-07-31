@@ -47,6 +47,10 @@
                             <a href="additem.php">
                                 <i class="fas fa-plus-circle"></i>Add item</a>
                         </li>
+                        <li class="">
+                            <a href="sellItems.php">
+                                <i class="fas fa-plus-circle"></i>Sold Items</a>
+                        </li>
                     </ul>
                 </nav>
             </div>

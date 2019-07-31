@@ -39,17 +39,19 @@
         padding: 1em;
         margin-bottom: 1em;
     }
+    #myTable td, #myTable th {
+        border-top: 0px !important;
+    }
 </style>
 <body class="animsition" id="collection-page">
 <div class="page-wrapper">
-    
     <?php include '../template/navigation-user.php'; ?>
     <?php 
  $items = array();
 
 
-   $sql1 = "SELECT a.id,a.waste_category_id as category,a.name,b.price FROM waste_class as a INNER JOIN junktable as b
-ON a.id = b.subCategoryID GROUP by a.waste_category_id";
+   $sql1 = "SELECT a.id,a.waste_category_id as category,b.description as name,b.price FROM waste_class as a INNER JOIN junktable as b
+ON a.id = b.subCategoryID";
                                                                 $result1 = mysqli_query($mysql2,$sql1);
                                                                 if (mysqli_num_rows($result1) > 0) {         
                                                                                           
@@ -82,7 +84,8 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                                 </ul>
                             </div>
                           
-                        </div>                           
+                        </div>  
+                        <div id="alertContainer"></div>                         
                     </div>
                 </div>
             </div>
@@ -124,14 +127,11 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                             $fPrice = reset($items);
                             
                             ?>
-                            <input type="number" name="itemQuantity" id="itemQuantity" class="form-control"  min="1" max="1000" defaultVal=<?php echo $fPrice["price"]; ?> />
+                            <input type="number" sumTotalQuantity = "1" name="itemQuantity" id="itemQuantity" class="form-control"  min="1" max="1000" defaultVal=<?php echo $fPrice["price"]; ?> value=1 />
                         </td>
                         <td>
-                            <?php 
-                            $fPrice = reset($items);
                             
-                            ?>
-                            <input type="number" name="itemprice"  class="form-control" value=<?php echo $fPrice["price"]; ?> disabled/>
+                            <input type="number" sumTotal = "1" name="itemprice"  class="form-control" value=<?php echo $fPrice["price"]; ?> disabled/>
                         </td>
                         <td><a class="deleteRow"></a>
 
@@ -145,6 +145,9 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                         </td>
                         <td>
                             <input type="button" class="btn btn-lg btn-block " id="sell" value="Sell" />
+                        </td>
+                         <td class="pull-right">
+                            <input type="button" class="btn btn-lg btn-block " id="totalValue" value="Total : <?php echo $fPrice["price"]; ?>" style="width: 300px;" disabled/>
                         </td>
                     </tr>
                     <tr>
@@ -178,11 +181,12 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
 
             $("#addrow").on("click", function () {
                 var newRow = $("<tr>");
+                var sumAll = 0;
                 var cols = "";
 
                         cols += '<td><select class="form-control" id="itemType' + counter + '" name = "itemType"><?php foreach($items as $item){ echo '<option value="'.$item["id"].'" price="'.$item["price"].'">'.$item["name"].'</option>';}?> </select></td>';
-                        cols += '<td><input type="number" class="form-control" name="itemQuantity' + counter + '" price = <?php echo '.$item["price"].';?>/></td>';
-                        cols += '<td><input type="number" class="form-control" name="itemprice' + counter + '"/  value=<?php echo $fPrice["price"]; ?> disabled></td>';
+                        cols += '<td><input type="number" class="form-control" sumTotalQuantity = "1" id="itemQuantity' + counter + '" name="itemQuantity' + counter + '" defaultVal=<?php echo $fPrice["price"]; ?>  min="1" max="1000" value=1></td>';
+                        cols += '<td><input type="number" class="form-control" sumTotal = "1" name="itemprice' + counter + '"/  value=<?php echo $fPrice["price"]; ?> disabled></td>';
 
                 cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
                 newRow.append(cols);
@@ -191,32 +195,111 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                 var str1 = "#itemType";
                 var res = str1.concat(counter);
                 $(res).change(function(){
+                    var sumAllInner = 0;
                     var selected = " option:selected"
                     var resel = res.concat(selected);
                    $(resel).each(function() {
-                    // console.log($(this).attr('price'));
-                     var i = $(this).closest('tr').find('td:eq(2)').find('input');
-                     i.val($(this).attr('price'))
+                        var i = $(this).closest('tr').find('td:eq(2)').find('input');
+                        var quan = $(this).closest('tr').find('td:eq(1)').find('input').val();
+                        var defaultPrice = $(this).closest('tr').find('td:eq(1)').find('input');
+                        defaultPrice.attr("defaultVal",$(this).attr('price'))
+
+                        total = $(this).attr('price') * quan;
+                        if (total == 0) {
+                            i.val($(this).attr('price'));  
+                        }
+                        else {
+                            i.val(parseFloat(total).toFixed(2));
+                        }
                     });
+                   $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                          sumAllInner += Number($(this).val());
+                          $("table.order-list tfoot #totalValue").val("Total : " + parseFloat(sumAllInner).toFixed(2));
+                       });
+                     });
                 });
+                var quantityId = "#itemQuantity";
+                var quantityIdRes = quantityId.concat(counter);
+                $(quantityIdRes).change(function(){
+                    var sumAllInner = 0;
+                    var price = $(this).attr("defaultVal")
+                    var total = price * $(this).val();
+                    var input = $(this).closest('tr').find('td:eq(2)').find('input');
+                    input.val(parseFloat(total).toFixed(2));
+
+                    $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                          sumAllInner += Number($(this).val());
+                          $("table.order-list tfoot #totalValue").val("Total : " + parseFloat(sumAllInner).toFixed(2));
+                       });
+                     });
+
+                });
+
+                $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                      sumAll += Number($(this).val());
+                      $("table.order-list tfoot #totalValue").val(parseFloat(sumAll).toFixed(2));
+                   });
+                 });
+
                  counter++;
 
             });
 
             $("#sell").on("click", function () {
-                 $("table.order-list tbody tr").find('td').each(function () {
-                   $(this).find('input[name^="itemType"]').each(function () {
-                        console.log($(this).val());
-                   });
-                 });
+                var rowCount =  $('#myTable >tbody >tr').length;
+                var count = 0
+                 $("table.order-list tbody").find('tr').each(function () {
+                   console.log($(this).find('select[name^="itemType"]').val() + " " + $(this).find('input[sumTotalQuantity^="1"]').val() + " " + $(this).find('input[sumTotal^="1"]').val());
+
+                var subCategory = $(this).find('select[name^="itemType"]').val()
+                var quantity = $(this).find('input[sumTotalQuantity^="1"]').val()
+                var price = $(this).find('input[sumTotal^="1"]').val()
+
+                   $.ajax({
+                          url: "../api/processItemSell.php",
+                          data: {
+                              'subCategory' : subCategory,
+                              'quantity' : quantity,
+                              'price' : price
+                          },
+                          dataType: 'json',
+                          success: function(data) {
+                            if (data["status"] == true) {
+                                  count++;
+                                  if (rowCount == count) {
+                                    $( "#alertContainer" ).append( "<div class='alert alert-success alert-dismissible fade show' role='alert'> <strong>"+data["msg"]+"!</strong><button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button> </div>" );
+                                  }
+                                }
+                                else {
+                                  
+                                }
+
+                          },
+                          error: function(data){
+                              //error
+                          }
+                      });
+
+                     });
             });
 
             $("table.order-list").on("click", ".ibtnDel", function (event) {
+                var sumAllInner = 0;
                 $(this).closest("tr").remove();       
                 counter -= 1
+                 $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                          sumAllInner += Number($(this).val());
+                          $("table.order-list tfoot #totalValue").val("Total : " + parseFloat(sumAllInner).toFixed(2));
+                       });
+                     });
             });
 
              $("#itemType").change(function(){
+                 var sumAll = 0;
                 $( "#itemType option:selected" ).each(function() {
                     var i = $(this).closest('tr').find('td:eq(2)').find('input');
                     var quan = $(this).closest('tr').find('td:eq(1)').find('input').val();
@@ -230,17 +313,30 @@ ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                     else {
                         i.val(parseFloat(total).toFixed(2));
                     }
-                    
                 });
+                 $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                      sumAll += Number($(this).val());
+                      $("table.order-list tfoot #totalValue").val("Total : " + parseFloat(sumAll).toFixed(2));
+                   });
+                 });
                   
             });
 
             $("#itemQuantity").change(function(){
-
+                var sumAll = 0;
                 var price = $(this).attr("defaultVal")
                 var total = price * $(this).val();
                 var input = $(this).closest('tr').find('td:eq(2)').find('input');
                 input.val(parseFloat(total).toFixed(2));
+
+
+                $("table.order-list tbody tr").find('td').each(function () {
+                   $(this).find('input[name^="itemprice"]').each(function () {
+                      sumAll += Number($(this).val());
+                      $("table.order-list tfoot #totalValue").val("Total : " + parseFloat(sumAll).toFixed(2));
+                   });
+                 });
             });
         });
 
