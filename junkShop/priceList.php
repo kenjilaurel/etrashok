@@ -23,16 +23,16 @@
                                                    
                                                  
                                                     <?php 
-                                                    $sql1 = "SELECT `id`, `category`  FROM `waste_category` WHERE 1";
+                                                    $sql1 = "SELECT `id`, `waste_category_id`, `name` FROM `waste_class` WHERE 1";
                                                                 $result1 = mysqli_query($mysql2,$sql1);
                                                                 if (mysqli_num_rows($result1) > 0) {         
                                                                                           
                                                                     while($row = mysqli_fetch_assoc($result1)) {                                                        
-                                                                         echo '<option value="'.$row['id'].'">'.$row['category'].'</option>';
+                                                                         echo '<option value="'.$row['id'].'" category="'.$row['waste_category_id'].'">'.$row['name'].'</option>';
                                                                     }
                                                                 }
 
-                                                   ?>                 
+                                                   ?>                      
                                                   </select>
                                             </div>
                                             <div class="form-group has-success">
@@ -87,12 +87,12 @@
                                                    
                                                  
                                                     <?php 
-                                                    $sql1 = "SELECT `id`, `category`  FROM `waste_category` WHERE 1";
+                                                    $sql1 = "SELECT `id`, `waste_category_id`, `name` FROM `waste_class` WHERE 1";
                                                                 $result1 = mysqli_query($mysql2,$sql1);
                                                                 if (mysqli_num_rows($result1) > 0) {         
                                                                                           
                                                                     while($row = mysqli_fetch_assoc($result1)) {                                                        
-                                                                         echo '<option value="'.$row['id'].'">'.$row['category'].'</option>';
+                                                                         echo '<option value="'.$row['id'].'" category="'.$row['waste_category_id'].'">'.$row['name'].'</option>';
                                                                     }
                                                                 }
 
@@ -175,6 +175,7 @@
                                             <tr>
                                                 
                                                 <th>category</th>
+                                                <th>SubCategory</th>
                                                 <th>description</th>
                                                 <th>date</th>
                                                 <th>price</th>
@@ -185,19 +186,22 @@
 
 
                                             <?php 
-                                                $sql = "SELECT a.id,a.category as junkCat,b.category as cat,a.description,a.created,a.price FROM junkTable as a INNER JOIN waste_category as b ON a.category = b.id";
+                                                $sql = "SELECT a.id,c.category as junkCat,b.name as junkSub,a.subCategoryID,a.description,a.price,a.created FROM junktable as a 
+                                                        INNER JOIN waste_class as b ON a.subCategoryID = b.id
+                                                        INNER JOIN waste_category as c ON a.category = c.id";
                                                 $result = mysqli_query($mysqli,$sql);
                                                 if (mysqli_num_rows($result) > 0) {                                  
                                                     while($row = mysqli_fetch_assoc($result)) {                                                        
                                                         echo '<tr class="tr-shadow">';
                                                         
-                                                        echo '<td>'.$row['cat'].'</td>';
+                                                        echo '<td>'.$row['junkCat'].'</td>';
+                                                        echo '<td>'.$row['junkSub'].'</td>';
                                                         echo '<td class="desc">'.$row['description'].'</td>';
                                                         echo '<td>'.$row['created'].'</td>';
                                                         echo '<td>'.$row['price'].'</td>';
                                                         echo '<td>';
                                                         echo '<div class="table-data-feature">';
-                                                        echo '<button class="item openModal" data-toggle="tooltip" data-placement="top" title="Edit" selectedCat = '.$row['junkCat'].' selDesc = '.$row['description'].' selPrice = '.$row['price'].' upId = '.$row['id'].'>
+                                                        echo '<button class="item openModal" data-toggle="tooltip" data-placement="top" title="Edit" selectedCat = '.$row['subCategoryID'].' selDesc = '.$row['description'].' selPrice = '.$row['price'].' upId = '.$row['id'].'>
                                                             <i class="zmdi zmdi-edit"></i>
                                                         </button>';
                                                         echo '<button class="item deleteJunk" junkId = '.$row['id'].' data-toggle="tooltip" data-placement="top" title="Delete">
@@ -246,10 +250,10 @@
                $("#newModal").modal();
 
 
-                $("#addNewButton").click(function(event){
+                $("#addNewButton").click(function(event) {
                 event.preventDefault();
-            
-                var category = $('#newModal select[name=selWaste]').val();
+                var category = $('#newModal option:selected').attr('category');
+                var subCategory = $('#newModal select[name=selWaste]').val();
                 var desc = $("#newModal input[id='wasteDesc']").val();
                 var price = $("#newModal input[id='wastePrice']").val();
 
@@ -268,6 +272,7 @@
                       url: "../api/processJunkItem.php",
                       data: {
                           'category' : category,
+                          'subCategory' : subCategory,
                           'desc' : desc,
                           'price' : price
                       },
@@ -349,11 +354,13 @@
                 }
                 else {
                    
-                    var category = $('#myModal select[name=selWaste]').val();
+                    var category = $('#myModal option:selected').attr('category');
+                    var subCategory = $('#myModal select[name=selWaste]').val();
                     var desc = $("#myModal input[id='wasteDesc']").val();
                     var price = $("#myModal input[id='wastePrice']").val();
                     console.log(upId);
                     console.log(category);
+                    console.log(subCategory);
                     console.log(desc);
                     console.log(price);
                      $.ajax({
@@ -361,6 +368,7 @@
                       data: {
                         'upId' : upId,
                         'category' : category,
+                        'subCategory' : subCategory,
                         'desc' : desc,
                         'price' : price
                       },

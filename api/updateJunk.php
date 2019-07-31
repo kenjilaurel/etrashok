@@ -3,6 +3,7 @@ require '../connection/dbconnect.php';
 
 $upId = $_GET['upId'];
 $category = $_GET['category'];
+$subCategory = $_GET['subCategory'];
 $desc = $_GET['desc'];
 $price = $_GET['price'];
 
@@ -13,7 +14,7 @@ $price = $_GET['price'];
 // } else {
 // 	$data = [ 'status'=>true, 'msg'=>$sql ];
 // }
-$sql = "UPDATE `junktable` SET `category`= '$category',`description`= '$desc',`price`= '$price' WHERE id  = $upId";
+$sql = "UPDATE `junktable` SET `category`= '$category',`subCategoryID`= '$subCategory',`description`= '$desc',`price`= '$price' WHERE id  = $upId";
 
 if (mysqli_query($mysqli, $sql)) {
    	$data = [ 'status'=>true, 'msg'=>'Record updated successfully' ];

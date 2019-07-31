@@ -48,12 +48,13 @@
  $items = array();
 
 
-   $sql1 = "SELECT `id`, `category`  FROM `waste_category` WHERE 1";
+   $sql1 = "SELECT a.id,a.waste_category_id as category,a.name,b.price FROM waste_class as a INNER JOIN junktable as b
+ON a.id = b.subCategoryID GROUP by a.waste_category_id";
                                                                 $result1 = mysqli_query($mysql2,$sql1);
                                                                 if (mysqli_num_rows($result1) > 0) {         
                                                                                           
                                                                     while($row = mysqli_fetch_assoc($result1)) {
-                                                                        array_push($items, ['id' => $row['id'], 'cat' => $row['category']]);                              
+                                                                        array_push($items, ['id' => $row['id'], 'cat' => $row['category'],'cat' => $row['category'],'name' => $row['name'],'price' => $row['price']]);                              
                                                                     
                                                                     }
                                                                 }                                                 
@@ -109,7 +110,7 @@
                                 <?php                                           
                                 foreach($items as $item){
                                
-                                 echo '<option value="'.$item["id"].'">'.$item["cat"].'</option>';
+                                 echo '<option value="'.$item["id"].'" price="'.$item["price"].'">'.$item["name"].'</option>';
                               
                                 }
                                 ?>   
@@ -119,14 +120,18 @@
                            
                         </td>
                         <td >
-                            <input type="number" name="itemQuantity"  class="form-control"/>
+                             <?php 
+                            $fPrice = reset($items);
+                            
+                            ?>
+                            <input type="number" name="itemQuantity" id="itemQuantity" class="form-control"  min="1" max="1000" defaultVal=<?php echo $fPrice["price"]; ?> />
                         </td>
                         <td>
                             <?php 
                             $fPrice = reset($items);
-                            echo $fPrice["cat"];
+                            
                             ?>
-                            <input type="number" name="itemprice"  class="form-control"/>
+                            <input type="number" name="itemprice"  class="form-control" value=<?php echo $fPrice["price"]; ?> disabled/>
                         </td>
                         <td><a class="deleteRow"></a>
 
@@ -175,14 +180,27 @@
                 var newRow = $("<tr>");
                 var cols = "";
 
-                        cols += '<td><select class="form-control" id="itemType" name = "itemType"><?php foreach($items as $item){ echo '<option value="'.$item["id"].'">'.$item["cat"].'</option>';}?> </select></td>';
-                        cols += '<td><input type="number" class="form-control" name="itemQuantity' + counter + '"/></td>';
-                        cols += '<td><input type="number" class="form-control" name="itemprice' + counter + '"/></td>';
+                        cols += '<td><select class="form-control" id="itemType' + counter + '" name = "itemType"><?php foreach($items as $item){ echo '<option value="'.$item["id"].'" price="'.$item["price"].'">'.$item["name"].'</option>';}?> </select></td>';
+                        cols += '<td><input type="number" class="form-control" name="itemQuantity' + counter + '" price = <?php echo '.$item["price"].';?>/></td>';
+                        cols += '<td><input type="number" class="form-control" name="itemprice' + counter + '"/  value=<?php echo $fPrice["price"]; ?> disabled></td>';
 
                 cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
                 newRow.append(cols);
                 $("table.order-list").append(newRow);
-                counter++;
+               
+                var str1 = "#itemType";
+                var res = str1.concat(counter);
+                $(res).change(function(){
+                    var selected = " option:selected"
+                    var resel = res.concat(selected);
+                   $(resel).each(function() {
+                    // console.log($(this).attr('price'));
+                     var i = $(this).closest('tr').find('td:eq(2)').find('input');
+                     i.val($(this).attr('price'))
+                    });
+                });
+                 counter++;
+
             });
 
             $("#sell").on("click", function () {
@@ -198,7 +216,32 @@
                 counter -= 1
             });
 
+             $("#itemType").change(function(){
+                $( "#itemType option:selected" ).each(function() {
+                    var i = $(this).closest('tr').find('td:eq(2)').find('input');
+                    var quan = $(this).closest('tr').find('td:eq(1)').find('input').val();
+                    var defaultPrice = $(this).closest('tr').find('td:eq(1)').find('input');
+                    defaultPrice.attr("defaultVal",$(this).attr('price'))
 
+                    total = $(this).attr('price') * quan;
+                    if (total == 0) {
+                        i.val($(this).attr('price'));  
+                    }
+                    else {
+                        i.val(parseFloat(total).toFixed(2));
+                    }
+                    
+                });
+                  
+            });
+
+            $("#itemQuantity").change(function(){
+
+                var price = $(this).attr("defaultVal")
+                var total = price * $(this).val();
+                var input = $(this).closest('tr').find('td:eq(2)').find('input');
+                input.val(parseFloat(total).toFixed(2));
+            });
         });
 
 
